@@ -1,0 +1,28 @@
+<launch>
+  <param name="/use_sim_time" value="true" />
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+  </include>
+
+  <param name="robot_description" command="$(find xacro)/xacro $(find robot_arm_urdf)/urdf/robot_arm_urdf.urdf" />
+  <rosparam file="$(find robot_arm_urdf)/config/ros_controllers.yaml" command="load" />
+
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
+        args="-param robot_description -urdf -model robot_arm_urdf
+               -J joint_1 0.0 -J joint_2 0.0 -J joint_3 0.0
+               -J joint_4 0.0 -J joint_5 0.0 -J joint_6 0.0 -J joint_7 0.0" />
+
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+        output="screen" args="joint_state_controller arm_group_controller hand_controller" />
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <include file="$(find moveit_robot_arm_sim)/launch/demo.launch">
+      <arg name="moveit_controller_manager" value="ros_control"/>
+      <arg name="load_robot_description" value="false"/>
+  </include>
+
+</launch>

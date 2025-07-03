@@ -1,0 +1,19 @@
+# This file connects MoveIt's trajectory planner to our ros_control controllers.
+controller_list:
+  - name: arm_group_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    joints:
+      - joint_1
+      - joint_2
+      - joint_3
+      - joint_4
+      - joint_5
+  - name: hand_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    joints:
+      - joint_6
+      - joint_7
