@@ -1,11 +1,10 @@
 <launch>
   <param name="/use_sim_time" value="true" />
 
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="paused" value="false"/>
-    <arg name="use_sim_time" value="true"/>
-    <arg name="gui" value="true"/>
-  </include>
+ <include file="$(find gazebo_ros)/launch/empty_world.launch">
+  <arg name="world_name" value="$(find robot_arm_urdf)/worlds/sorting_world.world"/>
+  <arg name="gui" value="false"/>
+</include>
 
   <param name="robot_description" command="$(find xacro)/xacro $(find robot_arm_urdf)/urdf/robot_arm_urdf.urdf" />
   <rosparam file="$(find robot_arm_urdf)/config/ros_controllers.yaml" command="load" />
@@ -19,6 +18,18 @@
         output="screen" args="joint_state_controller arm_group_controller hand_controller" />
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <param name="can_description" command="$(find xacro)/xacro $(find robot_arm_urdf)/urdf/can.urdf" />
+  <node name="spawn_can" pkg="gazebo_ros" type="spawn_model"
+        args="-urdf -param can_description -model waste_can -x 0.4 -y -0.1 -z 0" />
+  <node pkg="tf" type="static_transform_publisher" name="can_broadcaster"
+        args="0.4 -0.1 0 0 0 0 world can_link 100" />
+
+  <param name="bottle_description" command="$(find xacro)/xacro $(find robot_arm_urdf)/urdf/bottle.urdf" />
+  <node name="spawn_bottle" pkg="gazebo_ros" type="spawn_model"
+        args="-urdf -param bottle_description -model waste_bottle -x 0.4 -y 0.1 -z 0" />
+  <node pkg="tf" type="static_transform_publisher" name="bottle_broadcaster"
+        args="0.4 0.1 0 0 0 0 world bottle_link 100" />
 
   <include file="$(find moveit_robot_arm_sim)/launch/demo.launch">
       <arg name="moveit_controller_manager" value="ros_control"/>
