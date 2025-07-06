@@ -14,25 +14,23 @@
         args="-param robot_description -urdf -model robot_arm_urdf" />
 
   <param name="can_description" command="$(find xacro)/xacro $(find robot_arm_urdf)/urdf/can.urdf" />
-  
   <node name="spawn_can" pkg="gazebo_ros" type="spawn_model"
-        args="-urdf -param can_description -model waste_can -x 0.0 -y -0.64 -z 0.06" />
-            
+        args="-urdf -param can_description -model waste_can -x 0.0 -y -0.60 -z 0.06" />
   <node pkg="tf" type="static_transform_publisher" name="can_tf_broadcaster"
-        args="0.0 -0.64 0.06 0 0 0 world can_link 100" />
-        
-  <rosparam file="$(find robot_arm_urdf)/config/ros_controllers.yaml" command="load" />
+        args="0.0 -0.60 0.06 0 0 0 world can_link 100" />
+
+  <rosparam file="$(find moveit_robot_arm_sim)/config/controllers.yaml" command="load" />
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
         output="screen" args="joint_state_controller arm_group_controller hand_controller" />
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
-  
+
   <include file="$(find moveit_robot_arm_sim)/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
     <arg name="info" value="true"/>
-    <arg name="debug" value="false"/>
+    <arg name="debug" value="false" />
   </include>
 
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_arm_urdf)/config/moveit.rviz" respawn="false" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_arm_urdf)/config/moveit.rviz" />
 
 </launch>

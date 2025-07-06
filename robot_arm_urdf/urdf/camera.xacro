@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="waste_camera">
+    <link name="waste_camera_link">
+      <visual>
+        <geometry>
+          <box size="0.02 0.05 0.05"/>
+        </geometry>
+        <material name="blue">
+          <color rgba="0 0 1 1"/>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="waste_camera_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="waste_camera_link"/>
+      <origin xyz="0.0 -0.693 0.8" rpy="0 1.57 0"/>
+    </joint>
+
+    <gazebo reference="waste_camera_link">
+      <sensor type="camera" name="waste_camera_sensor">
+        <update_rate>30.0</update_rate>
+        <camera name="head">
+          <horizontal_fov>1.089</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>8.0</far>
+          </clip>
+        </camera>
+        <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+          <alwaysOn>true</alwaysOn>
+          <updateRate>0.0</updateRate>
+          <cameraName>waste_camera</cameraName> <imageTopicName>image_raw</imageTopicName>
+          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+          <frameName>waste_camera_link</frameName>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+</robot>

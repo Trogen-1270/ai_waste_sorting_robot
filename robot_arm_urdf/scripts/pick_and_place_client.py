@@ -13,6 +13,10 @@ class PickAndPlaceClient:
 
         self.arm_group = moveit_commander.MoveGroupCommander("arm_group")
         self.gripper_group = moveit_commander.MoveGroupCommander("gripper")
+
+        self.arm_group.set_goal_position_tolerance(0.01)
+        self.arm_group.set_planning_time(10)
+
         rospy.loginfo("✅ Robot Controller Client is ready.")
 
     def call_detector_service(self, label):
@@ -20,9 +24,7 @@ class PickAndPlaceClient:
         rospy.wait_for_service('get_target_pose')
         try:
             get_target_pose = rospy.ServiceProxy('get_target_pose', GetTargetPose)
-            rospy.loginfo(f"Requesting pose for '{label}'...")
             response = get_target_pose(label)
-
             if response.success:
                 rospy.loginfo("Pose received successfully!")
                 return response.pose
@@ -34,44 +36,57 @@ class PickAndPlaceClient:
             return None
 
     def run_pick_place(self):
-        # 1. Go to a neutral starting position
+        # 1. Go to rest, open gripper
         self.arm_group.set_named_target("rest_pose")
         self.arm_group.go(wait=True)
         self.gripper_group.set_named_target("gripper_open")
         self.gripper_group.go(wait=True)
         rospy.sleep(1)
 
-        # 2. Ask the perception service for the object's location
-        target_pose = self.call_detector_service("red_can")
+        # 2. Get can's location
+        can_pose = self.call_detector_service("red_can")
+        if can_pose is None: return
 
-        if target_pose is None:
-            rospy.logerr("Halting execution. Cannot proceed without target pose.")
-            return
-
-        # 3. Go to the object and pick it up
-        rospy.loginfo("Moving to pick object.")
-        self.arm_group.set_pose_target(target_pose)
+        # 3. Go to "pick_ready" pose
+        self.arm_group.set_named_target("pick_ready")
         self.arm_group.go(wait=True)
 
+        # 4. Create an approach pose (aligned in X and Y)
+        approach_pose = self.arm_group.get_current_pose().pose
+        approach_pose.position.x = can_pose.position.x
+        approach_pose.position.y = can_pose.position.y
+
+        rospy.loginfo("Moving to align with can (X,Y).")
+        self.arm_group.set_pose_target(approach_pose)
+        if not self.arm_group.go(wait=True):
+            rospy.logerr("Motion plan to align with can failed.")
+            return
+
+        # 5. ✅ FINAL STEP: Go down to grasp the can
+        rospy.loginfo("Moving down to grasp.")
+        grasp_pose = approach_pose
+        grasp_pose.position.z -= 0.08 # Move down 8cm from approach pose
+        self.arm_group.set_pose_target(grasp_pose)
+        if not self.arm_group.go(wait=True):
+            rospy.logerr("Motion plan to grasp pose failed.")
+            return
+        rospy.sleep(1)
+
+        # 6. Close gripper, lift, and return home
         self.gripper_group.set_named_target("gripper_closed")
         self.gripper_group.go(wait=True)
         rospy.sleep(1)
 
-        # 4. Lift the object
-        lift_pose = target_pose
-        lift_pose.position.z += 0.15 # Lift 15cm
-        self.arm_group.set_pose_target(lift_pose)
+        rospy.loginfo("Lifting can.")
+        # Use shift_pose_target for a simple straight-up motion
+        self.arm_group.shift_pose_target(2, 0.15) # Index 2 is the Z-axis, move up 15cm
         self.arm_group.go(wait=True)
 
-        # 5. Go to drop-off location and release
-        rospy.loginfo("Moving to drop-off location.")
-        self.arm_group.set_named_target("home") # Or another predefined pose
+        rospy.loginfo("Moving to rest_pose.")
+        self.arm_group.set_named_target("rest_pose")
         self.arm_group.go(wait=True)
 
-        self.gripper_group.set_named_target("gripper_open")
-        self.gripper_group.go(wait=True)
-
-        rospy.loginfo("🎉 Pick and place routine complete!")
+        rospy.loginfo("🎉🎉🎉 MISSION COMPLETE! 🎉🎉🎉")
         moveit_commander.roscpp_shutdown()
 
 if __name__ == '__main__':

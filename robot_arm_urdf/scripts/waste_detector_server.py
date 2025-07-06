@@ -15,29 +15,28 @@ class WasteDetectorServer:
         self.bridge = CvBridge()
         self.latest_image = None
 
-        # --- Calibration Constants (from tutorial) ---
-        self.x0_world, self.y0_world, self.z0_world = 1.0, 0.0, 0.5
-        self.x_pxl_ref, self.y_pxl_ref = 319, 240
-        self.pxl_per_meter = 1350.0
+        # --- Calibration Constants ---
+        self.x0_world, self.y0_world, self.z0_world = 0.0, -0.693, 0.05
+        self.x_pxl_ref, self.y_pxl_ref = 320, 240
+        self.pxl_per_meter = 1250.0
 
         # --- HSV Mask for TOP of red object ---
         self.hsv_ranges = {
-            'red_can': (np.array([0, 20, 160]), np.array([5, 120, 226]))
+            'red_can': (np.array([0, 150, 100]), np.array([10, 255, 255]))
         }
 
-        # --- ROS Subscribers and Services (Updated Logic) ---
-        self.image_sub = rospy.Subscriber("/camera/rgb/image_raw", Image, self.image_callback)
-
-        # --- Wait for the first image before starting the service ---
+        self.image_sub = rospy.Subscriber("/waste_camera/image_raw", Image, self.image_callback)
+        
         rospy.loginfo("Perception Server: Waiting for first image...")
         while self.latest_image is None:
-            rospy.sleep(0.1)  # Wait for a short moment
+            rospy.sleep(0.1)
 
-        # Now that we have an image, we can start the service
         self.service = rospy.Service('get_target_pose', GetTargetPose, self.handle_get_target_pose)
 
         rospy.loginfo("✅ Perception Service Server is ready.")
         rospy.spin()
+        
+        cv2.destroyAllWindows()
 
     def image_callback(self, msg):
         self.latest_image = msg
@@ -45,18 +44,10 @@ class WasteDetectorServer:
     def handle_get_target_pose(self, req):
         rospy.loginfo(f"Request received for: {req.label}")
 
-        if self.latest_image is None:
-            # This check is now redundant but kept for safety
-            rospy.logwarn("Server has not received an image yet.")
-            return GetTargetPoseResponse(pose=Pose(), success=False)
-        
-        if req.label not in self.hsv_ranges:
-            rospy.logerr(f"Label '{req.label}' is not a recognized object.")
-            return GetTargetPoseResponse(pose=Pose(), success=False)
-
         try:
             cv_image = self.bridge.imgmsg_to_cv2(self.latest_image, "bgr8")
             hsv = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
+            debug_image = cv_image.copy()
 
             lower_hsv, upper_hsv = self.hsv_ranges[req.label]
             mask = cv2.inRange(hsv, lower_hsv, upper_hsv)
@@ -64,33 +55,48 @@ class WasteDetectorServer:
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             if not contours:
-                rospy.logwarn(f"No contours found for label '{req.label}'.")
                 return GetTargetPoseResponse(pose=Pose(), success=False)
 
             cnt = max(contours, key=cv2.contourArea)
             if cv2.contourArea(cnt) < 50:
-                rospy.logwarn("Detected contour is too small, likely noise.")
                 return GetTargetPoseResponse(pose=Pose(), success=False)
 
             rect = cv2.minAreaRect(cnt)
             (x_pxl, y_pxl), _, _ = rect
 
+            # --- Coordinate Conversion ---
             dx_pxl = x_pxl - self.x_pxl_ref
             dy_pxl = y_pxl - self.y_pxl_ref
-            dx_world = dy_pxl / self.pxl_per_meter
+            dx_world = -dy_pxl / self.pxl_per_meter
             dy_world = -dx_pxl / self.pxl_per_meter
 
             final_x = self.x0_world + dx_world
             final_y = self.y0_world + dy_world
             final_z = self.z0_world
-
+            
+            # ===================================================================
+            # ADDED: Draw debugging information on the image
+            box = cv2.boxPoints(rect)
+            box = np.int0(box)
+            cv2.drawContours(debug_image, [box], 0, (0, 255, 0), 2) # Green box
+            cv2.circle(debug_image, (int(x_pxl), int(y_pxl)), 5, (0, 0, 255), -1) # Red circle
+            text = f"X: {final_x:.3f} Y: {final_y:.3f}"
+            cv2.putText(debug_image, text, (50, 50), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            # ===================================================================
+            
+            cv2.imshow("Debug Feed", debug_image)
+            cv2.imshow("Detection Mask", mask)
+            cv2.waitKey(1)
+            
+            # --- Prepare and return the response ---
             response = GetTargetPoseResponse()
             response.pose.position.x = final_x
             response.pose.position.y = final_y
             response.pose.position.z = final_z
             response.pose.orientation.w = 1.0
             response.success = True
-            rospy.loginfo("Found object. Sending coordinates.")
+            rospy.loginfo(f"Found object. Sending coordinates: X={final_x:.3f}, Y={final_y:.3f}, Z={final_z:.3f}")
             return response
 
         except Exception as e:
