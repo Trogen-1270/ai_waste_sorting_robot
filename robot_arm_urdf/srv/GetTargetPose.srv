@@ -1,0 +1,6 @@
+# Request (what the client sends)
+string label
+---
+# Response (what the server replies with)
+geometry_msgs/Pose pose
+bool success

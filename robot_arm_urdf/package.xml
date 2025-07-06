@@ -1,39 +1,43 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>robot_arm_urdf</name>
-  <version>0.0.0</version>
-  <description>The robot_arm_urdf package</description>
+  <name>robot_arm_urdf</name>
+  <version>0.0.0</version>
+  <description>The robot_arm_urdf package</description>
 
-  <maintainer email="www.anesutarusarira@gmail.com">REPLACE_WITH_YOUR_NAME</maintainer>
-  <license>TODO</license>
+  <maintainer email="www.anesutarusarira@gmail.com">Trogen-1270</maintainer>
+  <license>MIT</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>roscpp</build_depend>
-  <build_depend>rospy</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <exec_depend>roscpp</exec_depend>
-  <exec_depend>rospy</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
-  <exec_depend>geometry_msgs</exec_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
 
-  <build_depend>urdf</build_depend>
-  <build_depend>xacro</build_depend>
-  <exec_depend>urdf</exec_depend>
-  <exec_depend>xacro</exec_depend>
+  <build_depend>urdf</build_depend>
+  <build_depend>xacro</build_depend>
+  <exec_depend>urdf</exec_depend>
+  <exec_depend>xacro</exec_depend>
 
-  <build_depend>gazebo_ros</build_depend>
-  <build_depend>gazebo_ros_control</build_depend>
-  <build_depend>controller_manager</build_depend>
-  <build_depend>joint_state_controller</build_depend>
-  <build_depend>position_controllers</build_depend>
-  <exec_depend>gazebo_ros</exec_depend>
-  <exec_depend>gazebo_ros_control</exec_depend>
-  <exec_depend>controller_manager</exec_depend>
-  <exec_depend>joint_state_controller</exec_depend>
-  <exec_depend>position_controllers</exec_depend>
+  <build_depend>gazebo_ros</build_depend>
+  <build_depend>gazebo_ros_control</build_depend>
+  <build_depend>controller_manager</build_depend>
+  <build_depend>joint_state_controller</build_depend>
+  <build_depend>position_controllers</build_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>gazebo_ros_control</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>joint_state_controller</exec_depend>
+  <exec_depend>position_controllers</exec_depend>
 
-  <exec_depend>moveit_ros_move_group</exec_depend>
+  <exec_depend>moveit_ros_move_group</exec_depend>
+
+  <!-- These are the new dependencies required for ROS Services -->
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
 
 </package>
