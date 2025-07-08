@@ -2,6 +2,8 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <xacro:macro name="waste_camera">
+    <link name="world"/>
+
     <link name="waste_camera_link">
       <visual>
         <geometry>
@@ -14,9 +16,9 @@
     </link>
 
     <joint name="waste_camera_joint" type="fixed">
-      <parent link="base_link"/>
+      <parent link="world"/>
       <child link="waste_camera_link"/>
-      <origin xyz="0.0 -0.693 0.8" rpy="0 1.57 0"/>
+      <origin xyz="0.0 -0.60 0.8" rpy="0 1.5707 0"/>
     </joint>
 
     <gazebo reference="waste_camera_link">
@@ -37,7 +39,8 @@
         <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
           <alwaysOn>true</alwaysOn>
           <updateRate>0.0</updateRate>
-          <cameraName>waste_camera</cameraName> <imageTopicName>image_raw</imageTopicName>
+          <cameraName>waste_camera</cameraName>
+          <imageTopicName>image_raw</imageTopicName>
           <cameraInfoTopicName>camera_info</cameraInfoTopicName>
           <frameName>waste_camera_link</frameName>
         </plugin>
