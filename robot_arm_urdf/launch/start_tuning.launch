@@ -1,0 +1,50 @@
+<launch>
+  <!-- Define arguments for Gazebo -->
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+
+  <!-- Load the URDF into the ROS Parameter Server -->
+  <param name="robot_description" textfile="$(find robot_arm_urdf)/urdf/robot_arm_urdf.urdf" />
+
+  <!-- Start Gazebo with an empty world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="paused" value="$(arg paused)"/>
+      <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+      <arg name="gui" value="$(arg gui)"/>
+      <arg name="headless" value="$(arg headless)"/>
+      <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+  <!-- Spawn the robot in Gazebo -->
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+        args="-urdf -model robot_arm -param robot_description"/>
+
+  <!-- #################### TUNING SPECIFIC SECTION #################### -->
+
+  <!-- Load the TUNING controller configurations -->
+  <rosparam file="$(find moveit_robot_arm_sim)/config/controllers_tuning.yaml" command="load"/>
+
+  <!-- Load the Gazebo-specific PID gains -->
+  <rosparam file="$(find moveit_robot_arm_sim)/config/gazebo_gains.yaml" command="load"/>
+
+  <!-- Load ALL 7 individual joint controllers for tuning -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+        output="screen" ns="/" args="joint_1_controller joint_2_controller joint_3_controller joint_4_controller joint_5_controller joint_6_controller joint_7_controller joint_state_controller"/>
+
+  <!-- ############################################################### -->
+
+  <!-- convert joint states to TF transforms for rviz, etc -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+        respawn="false" output="screen" />
+
+  <!-- Start the rqt GUIs automatically -->
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" />
+  
+  <!-- This plots command vs actual for joint_5. Change as needed. -->
+  <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
+        args="/joint_5_controller/command/data /joint_5_controller/state/process_value" />
+
+</launch>

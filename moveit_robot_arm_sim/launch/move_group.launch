@@ -43,6 +43,8 @@
   </include>
 
   <node name="move_group" launch-prefix="$(arg launch_prefix)" pkg="moveit_ros_move_group" type="move_group" respawn="false" output="screen" args="$(arg command_args)">
+    <rosparam command="load" file="$(find moveit_robot_arm_sim)/config/ros_controllers.yaml"/>
+    
     <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>
     <param name="default_planning_pipeline" value="$(arg pipeline)" />
     <param name="capabilities" value="$(arg capabilities)" />

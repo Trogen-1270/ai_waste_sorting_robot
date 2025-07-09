@@ -1,0 +1,15 @@
+<!DOCTYPE rqt_gui>
+<rqt_gui version="1.0">
+  <perspective>
+    <name>PID Tuning</name>
+    <area horizontal="1">
+      <split horizontal="0">
+        <plugin name="rqt_joint_trajectory_controller/JointTrajectoryController" />
+        <split horizontal="1">
+          <plugin name="rqt_plot/Plot" />
+          <plugin name="rqt_reconfigure/Reconfigure" />
+        </split>
+      </split>
+    </area>
+  </perspective>
+</rqt_gui>

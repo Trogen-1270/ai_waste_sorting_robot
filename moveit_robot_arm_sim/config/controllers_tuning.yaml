@@ -1,0 +1,52 @@
+# ======================================================================
+# Special controller configuration for PID TUNING
+# Using position_controllers to match the robot's URDF hardware interface
+# ======================================================================
+
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50
+
+# Arm Joints
+joint_1_controller:
+  type: position_controllers/JointPositionController
+  joint: joint_1
+  pid: {p: 100.0, i: 0.01, d: 10.0}
+  state_publish_rate: 50
+
+joint_2_controller:
+  type: position_controllers/JointPositionController
+  joint: joint_2
+  pid: {p: 100.0, i: 0.01, d: 10.0}
+  state_publish_rate: 50
+
+joint_3_controller:
+  type: position_controllers/JointPositionController
+  joint: joint_3
+  pid: {p: 100.0, i: 0.01, d: 10.0}
+  state_publish_rate: 50
+
+joint_4_controller:
+  type: position_controllers/JointPositionController
+  joint: joint_4
+  pid: {p: 100.0, i: 0.01, d: 10.0}
+  state_publish_rate: 50
+
+joint_5_controller:
+  type: position_controllers/JointPositionController
+  joint: joint_5
+  pid: {p: 100.0, i: 0.01, d: 10.0}
+  state_publish_rate: 50
+
+# Gripper Joints
+joint_6_controller:
+  type: position_controllers/JointPositionController
+  joint: joint_6
+  pid: {p: 100.0, i: 0.01, d: 10.0}
+  state_publish_rate: 50
+
+joint_7_controller:
+  type: position_controllers/JointPositionController
+  joint: joint_7
+  pid: {p: 100.0, i: 0.01, d: 10.0}
+  state_publish_rate: 50
